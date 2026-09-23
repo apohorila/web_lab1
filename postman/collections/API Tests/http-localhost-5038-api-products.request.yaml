@@ -1,0 +1,26 @@
+$kind: http-request
+name: http://localhost:5038/api/products
+description: ""
+url: http://localhost:5038/api/products
+method: GET
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code is 200 OK\", function () {\r
+
+      \    pm.response.to.have.status(200);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Response is an array with items\", function () {\r
+
+      \    var jsonData = pm.response.json();\r
+
+      \    pm.expect(jsonData).to.be.an(\"array\");\r
+
+      \    pm.expect(jsonData.length).to.be.above(0);\r
+
+      });"
+    language: text/javascript
+order: 1790156565753

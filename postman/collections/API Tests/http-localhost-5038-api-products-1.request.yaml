@@ -1,0 +1,47 @@
+$kind: http-request
+name: http://localhost:5038/api/products
+description: ""
+url: http://localhost:5038/api/products
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"name\": \"Postman Test Bag\",\r
+
+    \  \"price\": 2800,\r
+
+    \  \"description\": \"Тестовий запис для перевірки автотестів\",\r
+
+    \  \"imageUrl\": \"https://example.com/bag.jpg\",\r
+
+    \  \"categoryId\": 1,\r
+
+    \  \"showroomId\": 1\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code is 201 Created\", function () {\r
+
+      \    pm.response.to.have.status(201);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Product was created and ID returned\", function () {\r
+
+      \    var jsonData = pm.response.json();\r
+
+      \    pm.expect(jsonData.id).to.be.above(0);\r
+
+      \    pm.expect(jsonData.name).to.eql(\"Postman Test Bag\");\r
+
+      \r
+
+      \    pm.collectionVariables.set(\"newProductId\", jsonData.id);\r
+
+      });"
+    language: text/javascript
+order: 742894593332693

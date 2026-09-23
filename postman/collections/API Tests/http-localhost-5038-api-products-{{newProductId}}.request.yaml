@@ -1,0 +1,14 @@
+$kind: http-request
+name: http://localhost:5038/api/products/{{newProductId}}
+description: ""
+url: http://localhost:5038/api/products/{{newProductId}}
+method: DELETE
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code is 204 NoContent\", function () {\r
+
+      \    pm.response.to.have.status(204);\r
+
+      });"
+    language: text/javascript
+order: 2419815285240115

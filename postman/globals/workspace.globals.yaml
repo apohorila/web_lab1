@@ -1,0 +1,5 @@
+name: Globals
+values:
+  - key: newProductId
+    value: ''
+    enabled: true
