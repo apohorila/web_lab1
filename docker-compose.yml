@@ -24,5 +24,18 @@ services:
     depends_on:
       - postgres
 
+ api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: brand_api
+    restart: always
+    ports:
+      - "5038:5000"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=brand_db;Username=admin;Password=student
+    depends_on:
+      - postgres     
+
 volumes:
   pgdata:
