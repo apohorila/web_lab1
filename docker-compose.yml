@@ -24,7 +24,7 @@ services:
     depends_on:
       - postgres
 
- api:
+  api:
     build:
       context: ./server
       dockerfile: Dockerfile
