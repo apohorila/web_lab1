@@ -26,7 +26,7 @@ services:
 
   api:
     build:
-      context: ./server
+      context: .
       dockerfile: Dockerfile
     container_name: brand_api
     restart: always
@@ -35,7 +35,7 @@ services:
     environment:
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=brand_db;Username=admin;Password=student
     depends_on:
-      - postgres     
+      - postgres
 
 volumes:
   pgdata:

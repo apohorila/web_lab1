@@ -1,8 +1,11 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
-COPY *.csproj ./
-RUN dotnet restore
-COPY . .
+
+COPY server/server.csproj ./server/
+RUN dotnet restore server/server.csproj
+
+COPY server/ ./server/
+WORKDIR /src/server
 RUN dotnet publish -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
