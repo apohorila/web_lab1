@@ -6,7 +6,7 @@ using server.Models;
 namespace server.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/products")]
 public class ProductsController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -19,37 +19,35 @@ public class ProductsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
     {
-        return await _context.Products
-            .Include(p => p.Category)
+        return await _context
+            .Products.Include(p => p.Category)
             .Include(p => p.Showroom)
             .AsNoTracking()
             .ToListAsync();
     }
 
-    
     [HttpGet("{id}")]
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
-        var product = await _context.Products
-            .Include(p => p.Category)
+        var product = await _context
+            .Products.Include(p => p.Category)
             .Include(p => p.Showroom)
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (product == null)
         {
-            return NotFound(); 
+            return NotFound();
         }
 
-        return Ok(product); 
+        return Ok(product);
     }
 
-   
     [HttpPost]
     public async Task<ActionResult<Product>> CreateProduct([FromBody] Product product)
     {
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState); 
+            return BadRequest(ModelState);
         }
 
         _context.Products.Add(product);
@@ -58,7 +56,6 @@ public class ProductsController : ControllerBase
         return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product); // 201
     }
 
-    
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product product)
     {
@@ -77,27 +74,26 @@ public class ProductsController : ControllerBase
         {
             if (!_context.Products.Any(e => e.Id == id))
             {
-                return NotFound(); 
+                return NotFound();
             }
             throw;
         }
 
-        return Ok(product); 
+        return Ok(product);
     }
 
-    
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProduct(int id)
     {
         var product = await _context.Products.FindAsync(id);
         if (product == null)
         {
-            return NotFound(); 
+            return NotFound();
         }
 
         _context.Products.Remove(product);
         await _context.SaveChangesAsync();
 
-        return NoContent(); 
+        return NoContent();
     }
 }
