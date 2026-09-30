@@ -20,7 +20,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: annapohorila07@gmail.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - "5050:8080"
+      - "5050:80"
     depends_on:
       - postgres
 
@@ -34,6 +34,9 @@ services:
       - "5038:8080"
     environment:
       - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=brand_db;Username=admin;Password=student
+      - Authentication__GoogleClientId=${GOOGLE_CLIENT_ID}
+      - Authentication__AdminEmail=${ADMIN_EMAIL}
+      - Jwt__Key=${JWT_KEY}
     depends_on:
       - postgres
 

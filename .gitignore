@@ -484,3 +484,5 @@ $RECYCLE.BIN/
 client/node_modules/
 client/dist/
 .postman/
+
+.env
