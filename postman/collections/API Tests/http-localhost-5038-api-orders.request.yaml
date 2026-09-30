@@ -1,0 +1,55 @@
+$kind: http-request
+name: http://localhost:5038/api/orders
+description: ""
+url: http://localhost:5038/api/orders
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"customerName\": \"Гість Покупець\",\r
+
+    \  \"customerPhone\": \"+380671112233\",\r
+
+    \  \"customerEmail\": \"guest@bagelle.ua\",\r
+
+    \  \"deliveryCity\": \"Київ\",\r
+
+    \  \"deliveryAddress\": \"Відділення Нової Пошти №1\",\r
+
+    \  \"items\": [\r
+
+    \    {\r
+
+    \      \"productId\": 1,\r
+
+    \      \"quantity\": 1\r
+
+    \    }\r
+
+    \  ]\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code is 200 OK\", function () {\r
+
+      \    pm.response.to.have.status(200);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Order created and returned orderId and totalAmount\", function () {\r
+
+      \    var jsonData = pm.response.json();\r
+
+      \    pm.expect(jsonData).to.have.property('orderId');\r
+
+      \    pm.expect(jsonData).to.have.property('totalAmount');\r
+
+      \    pm.expect(jsonData.totalAmount).to.be.above(0);\r
+
+      });"
+    language: text/javascript
+order: 4372646054533848

@@ -1,0 +1,35 @@
+$kind: http-request
+name: http://localhost:5038/api/orders
+description: ""
+url: http://localhost:5038/api/orders
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"customerName\": \"Гість\",\r
+
+    \  \"customerPhone\": \"+380509998877\",\r
+
+    \  \"items\": []\r
+
+    }"
+scripts:
+  - type: afterResponse
+    code: "pm.test(\"Status code is 400 Bad Request\", function () {\r
+
+      \    pm.response.to.have.status(400);\r
+
+      });\r
+
+      \r
+
+      pm.test(\"Error message indicates empty cart\", function () {\r
+
+      \    var jsonData = pm.response.json();\r
+
+      \    pm.expect(jsonData.message).to.include(\"порожнім\");\r
+
+      });"
+    language: text/javascript
+order: 4441480720866885
