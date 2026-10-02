@@ -1,12 +1,12 @@
-const API_BASE_URL = 'http://localhost:5038/api';
+const API_BASE_URL = "http://localhost:5038/api";
 
 export async function request(endpoint, options = {}) {
   const { body, ...customConfig } = options;
 
   const config = {
-    method: customConfig.method || (body ? 'POST' : 'GET'),
+    method: customConfig.method || (body ? "POST" : "GET"),
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...customConfig.headers,
     },
     ...customConfig,
@@ -20,9 +20,10 @@ export async function request(endpoint, options = {}) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.message || `HTTP помилка! Статус: ${response.status}`);
+    throw new Error(
+      errorData?.message || `HTTP помилка! Статус: ${response.status}`,
+    );
   }
-
 
   if (response.status === 204) {
     return null;

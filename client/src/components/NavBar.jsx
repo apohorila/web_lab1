@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getCategories } from "../api/categoriesApi";
-import searchIcon from '../assets/icons/search.svg';
-import userIcon from '../assets/icons/profile.svg';
-import cartIcon from '../assets/icons/cart.svg';
+import searchIcon from "../assets/icons/search.svg";
+import userIcon from "../assets/icons/profile.svg";
+import cartIcon from "../assets/icons/cart.svg";
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
+  const { user, isAdmin, logout } = useAuth();
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const isAdmin = false;
+  const token = localStorage.getItem("token") || localStorage.getItem("jwt");
 
   useEffect(() => {
     async function fetchCategoriesData() {
@@ -31,8 +33,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-neutral-100 font-[Halvar_Breitschrift] text-black tracking-wide">
       <div className="max-w-7xl mx-auto px-[30px] h-[80px] flex items-center justify-between">
-        {/* ЛІВА ЧАСТИНА: Каталог з ховером */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-[32px]">
           <div
             className="relative py-6 cursor-pointer"
             onMouseEnter={() => setIsCatalogOpen(true)}
@@ -46,8 +47,10 @@ export default function Navbar() {
             </Link>
 
             {isCatalogOpen && (
-              <div className="absolute top-full left-0 w-[384px] bg-white border border-neutral-100 shadow-lg p-[24px] normal-case no-underline text-inherit text-sm font-normal tracking-normal z-50"
-              style={{ backgroundColor: '#ffffff' }}>
+              <div
+                className="absolute top-full left-0 w-[384px] bg-white border border-neutral-100 shadow-lg p-[24px] normal-case no-underline text-inherit text-sm font-normal tracking-normal z-50"
+                style={{ backgroundColor: "#ffffff" }}
+              >
                 {isLoading ? (
                   <div className="text-neutral-400 text-xs py-2">
                     Завантаження категорій...
@@ -79,15 +82,6 @@ export default function Navbar() {
               </div>
             )}
           </div>
-
-          {isAdmin && (
-            <Link
-              to="/add"
-              className="text-inherit hover:text-neutral-900 transition-colors tracking-widest text-[11px]"
-            >
-              + Додати виріб
-            </Link>
-          )}
         </div>
 
         <div className="absolute left-1/2 -translate-x-1/2">
@@ -101,7 +95,7 @@ export default function Navbar() {
 
         <div className="flex items-center gap-[24px]">
           <Link
-            to="/map"
+            to="/showrooms"
             className="hover:opacity-60 transition-opacity tracking-widest text-inherit no-underline"
           >
             Магазини
@@ -112,15 +106,15 @@ export default function Navbar() {
             className="hover:opacity-60 transition-opacity p-1"
             title="Пошук"
           >
-            <img src={searchIcon} alt="Пошук" className="w-[24px] h-[24px]"/>
+            <img src={searchIcon} alt="Пошук" className="w-[24px] h-[24px]" />
           </Link>
 
           <Link
-            to="/profile"
+            to={token ? "/profile" : "/login"}
             className="hover:opacity-60 transition-opacity p-1"
-            title="Особистий кабінет"
+            title={user && user.email ? "Особистий кабінет" : "Увійти"}
           >
-            <img src={userIcon} alt="Профіль" className="w-[24px] h-[24px]"/>
+            <img src={userIcon} alt="Профіль" className="w-[24px] h-[24px]" />
           </Link>
 
           <Link
@@ -128,7 +122,7 @@ export default function Navbar() {
             className="hover:opacity-60 transition-opacity p-1 relative"
             title="Кошик"
           >
-            <img src={cartIcon} alt="Кошик" className="w-[24px] h-[24px]"/>
+            <img src={cartIcon} alt="Кошик" className="w-[24px] h-[24px]" />
           </Link>
         </div>
       </div>

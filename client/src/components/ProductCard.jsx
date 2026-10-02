@@ -10,10 +10,10 @@ export default function ProductCard({ product }) {
     "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80";
 
   return (
-    <div className="group flex flex-col items-center text-center bg-white cursor-pointer font-[Halvar_Breitschrift] no-underline text-black  select-none">
+    <div className="group flex flex-col items-center text-center bg-white cursor-pointer font-[Halvar_Breitschrift] no-underline text-black  select-none w-full">
       <Link
         to={`/products/${product.id}`}
-        className="w-full aspect-4/3 flex items-center justify-center overflow-hidden mb-[24px] bg-white"
+        className="w-full aspect-[4/3] flex items-center justify-center overflow-hidden mb-6 bg-white no-underline outline-none"
       >
         <img
           src={product.imageUrl || defaultImage}
@@ -25,7 +25,7 @@ export default function ProductCard({ product }) {
         />
       </Link>
 
-      <Link to={`/products/${product.id}`} className="block">
+      <Link to={`/products/${product.id}`} className="block no-underline hover:no-underline text-inherit outline-none">
         <h3 className="text-xs text-inherit md:text-sm font-normal tracking-[0.18em]   no-underline uppercase transition-opacity group-hover:opacity-70">
           {product.name}
         </h3>
