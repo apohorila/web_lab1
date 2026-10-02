@@ -28,6 +28,83 @@ namespace server.Controllers
             public string IdToken { get; set; } = string.Empty;
         }
 
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            if (
+                string.IsNullOrWhiteSpace(request.Email)
+                || string.IsNullOrWhiteSpace(request.Password)
+            )
+            {
+                return BadRequest(new { message = "Email та пароль є обов'язковими" });
+            }
+
+            var existingUser = await _context.Users.FirstOrDefaultAsync(u =>
+                u.Email == request.Email
+            );
+            if (existingUser != null)
+            {
+                return BadRequest(new { message = "Користувач із таким email уже зареєстрований" });
+            }
+
+            var role =
+                request.Email == "admin@bagelle.ua" || request.Email == "bagelleadmin@gmail.com"
+                    ? "Admin"
+                    : "Customer";
+
+            var user = new User
+            {
+                Email = request.Email,
+                FullName = request.Email.Split('@')[0],
+                Role = role,
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            var token = GenerateJwtToken(user);
+
+            return Ok(
+                new
+                {
+                    token = token,
+                    user = new
+                    {
+                        id = user.Id,
+                        email = user.Email,
+                        name = user.FullName,
+                        role = user.Role,
+                    },
+                }
+            );
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Невірний email або пароль" });
+            }
+
+            var token = GenerateJwtToken(user);
+
+            return Ok(
+                new
+                {
+                    token = token,
+                    user = new
+                    {
+                        id = user.Id,
+                        email = user.Email,
+                        name = user.FullName,
+                        role = user.Role,
+                    },
+                }
+            );
+        }
+
         [HttpPost("google")]
         public async Task<IActionResult> GoogleLogin([FromBody] GoogleAuthRequest request)
         {
@@ -36,7 +113,7 @@ namespace server.Controllers
             {
                 var settings = new GoogleJsonWebSignature.ValidationSettings()
                 {
-                    Audience = new[] { _config["Authentication:GoogleClientId"] }
+                    Audience = new[] { _config["Authentication:GoogleClientId"] },
                 };
                 payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, settings);
             }
@@ -48,10 +125,16 @@ namespace server.Controllers
             var email = payload.Email;
             var adminEmail = _config["Authentication:AdminEmail"];
 
-            var user = await _context.Users.Include(u => u.Cart).FirstOrDefaultAsync(u => u.Email == email);
+            var user = await _context
+                .Users.Include(u => u.Cart)
+                .FirstOrDefaultAsync(u => u.Email == email);
 
-            string assignedRole = string.Equals(email, adminEmail, StringComparison.OrdinalIgnoreCase) 
-                ? "Admin" 
+            string assignedRole = string.Equals(
+                email,
+                adminEmail,
+                StringComparison.OrdinalIgnoreCase
+            )
+                ? "Admin"
                 : "Customer";
 
             if (user == null)
@@ -62,7 +145,7 @@ namespace server.Controllers
                     FullName = payload.Name ?? "Google User",
                     PasswordHash = "OAUTH_GOOGLE",
                     Role = assignedRole,
-                    Cart = new Cart() 
+                    Cart = new Cart(),
                 };
                 _context.Users.Add(user);
             }
@@ -75,17 +158,19 @@ namespace server.Controllers
 
             var token = GenerateJwtToken(user);
 
-            return Ok(new
-            {
-                token,
-                user = new
+            return Ok(
+                new
                 {
-                    user.Id,
-                    user.Email,
-                    user.FullName,
-                    user.Role
+                    token,
+                    user = new
+                    {
+                        user.Id,
+                        user.Email,
+                        user.FullName,
+                        user.Role,
+                    },
                 }
-            });
+            );
         }
 
         private string GenerateJwtToken(User user)
@@ -95,7 +180,7 @@ namespace server.Controllers
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role),
-                new Claim("fullName", user.FullName)
+                new Claim("fullName", user.FullName),
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
@@ -111,5 +196,17 @@ namespace server.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+    }
+
+    public class RegisterRequest
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+
+    public class LoginRequest
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 }
