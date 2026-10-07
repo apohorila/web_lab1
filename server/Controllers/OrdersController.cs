@@ -20,7 +20,8 @@ namespace server.Controllers
 
         private int? GetCurrentUserId()
         {
-            var claim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User?.FindFirst("sub")?.Value;
+            var claim =
+                User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User?.FindFirst("sub")?.Value;
             return int.TryParse(claim, out int id) ? id : null;
         }
 
@@ -47,11 +48,21 @@ namespace server.Controllers
             {
                 return BadRequest(new { message = "Кошик не може бути порожнім" });
             }
+            if (
+                string.IsNullOrWhiteSpace(dto.CustomerName)
+                || string.IsNullOrWhiteSpace(dto.CustomerPhone)
+                || string.IsNullOrWhiteSpace(dto.DeliveryAddress)
+            )
+            {
+                return BadRequest(new { message = "Вкажіть ім'я, телефон та адресу доставки" });
+            }
 
             var userId = GetCurrentUserId();
 
             var productIds = dto.Items.Select(i => i.ProductId).Distinct().ToList();
-            var products = await _context.Products.Where(p => productIds.Contains(p.Id)).ToListAsync();
+            var products = await _context
+                .Products.Where(p => productIds.Contains(p.Id))
+                .ToListAsync();
 
             if (products.Count != productIds.Count)
             {
@@ -67,7 +78,7 @@ namespace server.Controllers
                 DeliveryCity = dto.DeliveryCity,
                 DeliveryAddress = dto.DeliveryAddress,
                 CreatedAt = DateTime.UtcNow,
-                Status = "Pending"
+                Status = "Pending",
             };
 
             decimal total = 0;
@@ -77,12 +88,14 @@ namespace server.Controllers
                 var qty = item.Quantity > 0 ? item.Quantity : 1;
                 total += prod.Price * qty;
 
-                order.Items.Add(new OrderItem
-                {
-                    ProductId = prod.Id,
-                    Quantity = qty,
-                    UnitPrice = prod.Price
-                });
+                order.Items.Add(
+                    new OrderItem
+                    {
+                        ProductId = prod.Id,
+                        Quantity = qty,
+                        UnitPrice = prod.Price,
+                    }
+                );
             }
 
             order.TotalAmount = total;
@@ -90,8 +103,8 @@ namespace server.Controllers
 
             if (userId.HasValue)
             {
-                var cart = await _context.Carts
-                    .Include(c => c.Items)
+                var cart = await _context
+                    .Carts.Include(c => c.Items)
                     .FirstOrDefaultAsync(c => c.UserId == userId.Value);
 
                 if (cart != null && cart.Items.Any())
@@ -102,25 +115,99 @@ namespace server.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(new
+            return Ok(
+                new
+                {
+                    message = "Замовлення успішно створено",
+                    orderId = order.Id,
+                    totalAmount = order.TotalAmount,
+                    createdAt = order.CreatedAt,
+                }
+            );
+        }
+
+        [Authorize]
+        [HttpGet("my")]
+        public async Task<IActionResult> GetMyOrders()
+        {
+            var userId = GetCurrentUserId();
+
+            var orders = await _context
+                .Orders.Include(o => o.Items)
+                    .ThenInclude(i => i.Product)
+                .Where(o => o.UserId == userId)
+                .OrderByDescending(o => o.CreatedAt)
+                .ToListAsync();
+
+            return Ok(orders);
+        }
+
+        [Authorize]
+        [HttpGet("{id:int}")]
+        public async Task<IActionResult> GetOrder(int id)
+        {
+            var userId = GetCurrentUserId();
+            var isAdmin = User.IsInRole("Admin");
+
+            var order = await _context
+                .Orders.Include(o => o.Items)
+                    .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(o => o.Id == id && (isAdmin || o.UserId == userId));
+
+            if (order == null)
             {
-                message = "Замовлення успішно створено",
-                orderId = order.Id,
-                totalAmount = order.TotalAmount,
-                createdAt = order.CreatedAt
-            });
+                return NotFound(new { message = "Замовлення не знайдено" });
+            }
+
+            return Ok(order);
         }
 
         [Authorize]
         [HttpGet]
+        
+        [Authorize]
+        [HttpPost("{id:int}/cancel")]
+        public async Task<IActionResult> CancelOrder(int id)
+        {
+            var userId = GetCurrentUserId();
+            var isAdmin = User.IsInRole("Admin");
+
+            if (userId == null && !isAdmin)
+            {
+                return Unauthorized();
+            }
+
+            var order = await _context
+                .Orders.Include(o => o.Items)
+                    .ThenInclude(i => i.Product)
+                .FirstOrDefaultAsync(o => o.Id == id && (isAdmin || o.UserId == userId));
+
+            if (order == null)
+            {
+                return NotFound(new { message = "Замовлення не знайдено" });
+            }
+
+            if (order.Status != "Pending")
+            {
+                return BadRequest(
+                    new { message = "Скасувати можна лише замовлення, що очікує обробки" }
+                );
+            }
+
+            order.Status = "Cancelled";
+            await _context.SaveChangesAsync();
+
+            return Ok(order);
+        }
+
         public async Task<IActionResult> GetOrders()
         {
             var userId = GetCurrentUserId();
             var isAdmin = User.IsInRole("Admin");
 
-            IQueryable<Order> query = _context.Orders
-                .Include(o => o.Items)
-                .ThenInclude(i => i.Product)
+            IQueryable<Order> query = _context
+                .Orders.Include(o => o.Items)
+                    .ThenInclude(i => i.Product)
                 .OrderByDescending(o => o.CreatedAt);
 
             if (!isAdmin)

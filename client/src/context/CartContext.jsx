@@ -6,16 +6,25 @@ import React, {
   useCallback,
 } from "react";
 import { request } from "../api/client";
+import { useAuth } from "./AuthContext";
 
 const CartContext = createContext();
 
+const normalizeCart = (cart) =>
+  (cart?.items ?? []).map((item) => ({
+    id: item.id, // id позиції кошика (CartItem) — саме його чекають PUT/DELETE
+    productId: item.productId,
+    quantity: item.quantity,
+    name: item.product?.name ?? "",
+    price: Number(item.product?.price ?? 0),
+    imageUrl: item.product?.imageUrl ?? "",
+  }));
+
 export function CartProvider({ children }) {
+  const { user } = useAuth();
+  const userId = user?.id;
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  const storedUser = localStorage.getItem("user");
-  const user = storedUser ? JSON.parse(storedUser) : null;
-  const userId = user?.id;
 
   const fetchCart = useCallback(async () => {
     if (!userId) {
@@ -24,8 +33,8 @@ export function CartProvider({ children }) {
     }
     try {
       setLoading(true);
-      const data = await request(`/cart`, { method: "GET" });
-      setCartItems(data?.items || []);
+      const data = await request(`/cart`);
+      setCartItems(normalizeCart(data));
     } catch (err) {
       console.error("Помилка завантаження кошика з БД:", err);
     } finally {
@@ -42,15 +51,11 @@ export function CartProvider({ children }) {
       alert("Будь ласка, увійдіть в акаунт, щоб додати товар у кошик");
       return;
     }
-    try {
-      const data = await request("/cart/items", {
-        method: "POST",
-        body: { userId, productId, quantity },
-      });
-      setCartItems(data?.items || []);
-    } catch (err) {
-      console.error("Не вдалося додати товар:", err);
-    }
+    const data = await request("/cart/items", {
+      method: "POST",
+      body: { userId, productId, quantity },
+    });
+    setCartItems(normalizeCart(data));
   };
 
   const updateQuantity = async (cartItemId, newQuantity) => {
@@ -76,6 +81,7 @@ export function CartProvider({ children }) {
     }
   };
 
+  const clearCart = () => setCartItems([]);
   const totalPrice = cartItems.reduce(
     (sum, item) => sum + (item.price || 0) * item.quantity,
     0,
@@ -91,6 +97,7 @@ export function CartProvider({ children }) {
         addToCart,
         updateQuantity,
         removeFromCart,
+        clearCart,
         refreshCart: fetchCart,
         totalPrice,
         totalCount,

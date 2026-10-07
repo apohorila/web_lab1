@@ -5,6 +5,12 @@ using server.Models;
 
 namespace server.Controllers;
 
+public class CategoryCreateDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Description { get; set; }
+}
+
 [ApiController]
 [Route("api/categories")]
 public class CategoriesController : ControllerBase
@@ -32,10 +38,18 @@ public class CategoriesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Category>> CreateCategory([FromBody] Category category)
+    public async Task<ActionResult<Category>> CreateCategory([FromBody] CategoryCreateDto dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        if (string.IsNullOrWhiteSpace(dto.Name))
+        {
+            return BadRequest(new { message = "Назва категорії є обов'язковою." });
+        }
+
+        var category = new Category
+        {
+            Name = dto.Name.Trim(),
+            Description = dto.Description ?? string.Empty,
+        };
 
         _context.Categories.Add(category);
         await _context.SaveChangesAsync();

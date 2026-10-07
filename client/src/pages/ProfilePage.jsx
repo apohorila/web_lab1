@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import {
   getCategories,
   getCategoryById,
@@ -12,19 +12,12 @@ import {
   updateProduct,
   deleteProduct,
 } from "../api/productsApi";
-import { getUserOrders } from "../api/orders";
+import { useAuth } from "../context/AuthContext";
+import { getUserOrders, getStatusLabel } from "../api/orders";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("user")) || {};
-    } catch {
-      return {};
-    }
-  });
-
-  const token = localStorage.getItem("token") || localStorage.getItem("jwt");
+  const { user, token, logout } = useAuth();
 
   useEffect(() => {
     if (!token || !user || (!user.id && !user.email)) {
@@ -85,7 +78,10 @@ export default function Profile() {
     e.preventDefault();
     if (!newCategoryName.trim()) return;
     try {
-      const created = await createCategory(newCategoryName);
+      const created = await createCategory({
+        name: newCategoryName.trim(),
+        description: "",
+      });
       setCategories([...categories, created]);
       setNewCategoryName("");
       setIsAddingCategory(false);
@@ -144,9 +140,7 @@ export default function Profile() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("jwt");
-    localStorage.removeItem("user");
+    logout();
     window.location.href = "/";
   };
 
@@ -420,9 +414,26 @@ export default function Profile() {
                       Місто доставки: {order.deliveryCity},{" "}
                       {order.deliveryAddress}
                     </p>
-                    <p className="text-xs font-medium uppercase tracking-wide">
-                      Сума: {order.totalAmount} ₴
-                    </p>
+                    <div className="flex justify-between items-center gap-3">
+                      <p className="text-xs font-medium uppercase tracking-wide">
+                        Сума: {order.totalAmount} ₴
+                      </p>
+                      <span
+                        className={`text-[10px] uppercase tracking-widest px-2 py-0.5 border ${
+                          order.status === "Cancelled"
+                            ? "border-red-200 bg-red-50 text-red-600"
+                            : "border-neutral-300 bg-white text-neutral-700"
+                        }`}
+                      >
+                        {getStatusLabel(order.status)}
+                      </span>
+                    </div>
+                    <Link
+                      to={`/orders/${order.id}`}
+                      className="inline-block mt-3 text-[11px] uppercase tracking-widest underline text-neutral-900 hover:opacity-60"
+                    >
+                      Переглянути
+                    </Link>
                   </div>
                 ))}
               </div>

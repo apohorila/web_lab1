@@ -5,14 +5,16 @@ import searchIcon from "../assets/icons/search.svg";
 import userIcon from "../assets/icons/profile.svg";
 import cartIcon from "../assets/icons/cart.svg";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 
 export default function Navbar() {
   const { user, isAdmin, logout } = useAuth();
+  const { totalCount } = useCart();
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const token = localStorage.getItem("token") || localStorage.getItem("jwt");
+  // const token = localStorage.getItem("token") || localStorage.getItem("jwt");
 
   useEffect(() => {
     async function fetchCategoriesData() {
@@ -35,7 +37,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-[30px] h-[80px] flex items-center justify-between">
         <div className="flex items-center gap-[32px]">
           <div
-            className="relative py-6 cursor-pointer"
+            className="relative py-[24px] cursor-pointer"
             onMouseEnter={() => setIsCatalogOpen(true)}
             onMouseLeave={() => setIsCatalogOpen(false)}
           >
@@ -110,7 +112,7 @@ export default function Navbar() {
           </Link>
 
           <Link
-            to={token ? "/profile" : "/login"}
+            to={user ? "/profile" : "/login"}
             className="hover:opacity-60 transition-opacity p-1"
             title={user && user.email ? "Особистий кабінет" : "Увійти"}
           >
@@ -123,6 +125,11 @@ export default function Navbar() {
             title="Кошик"
           >
             <img src={cartIcon} alt="Кошик" className="w-[24px] h-[24px]" />
+            {totalCount > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-[16px] px-1 rounded-full bg-black text-white text-[10px] leading-[16px] text-center">
+                {totalCount}
+              </span>
+            )}
           </Link>
         </div>
       </div>

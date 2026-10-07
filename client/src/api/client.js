@@ -1,18 +1,22 @@
 const API_BASE_URL = "http://localhost:5038/api";
 
+export const TOKEN_KEY = "bagelle_token";
+
 export async function request(endpoint, options = {}) {
-  const { body, ...customConfig } = options;
+  const { body, headers, ...rest } = options;
+  const token = localStorage.getItem(TOKEN_KEY);
 
   const config = {
-    method: customConfig.method || (body ? "POST" : "GET"),
+    method: rest.method || (body !== undefined ? "POST" : "GET"),
+    ...rest,
     headers: {
       "Content-Type": "application/json",
-      ...customConfig.headers,
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...headers,
     },
-    ...customConfig,
   };
 
-  if (body) {
+  if (body !== undefined) {
     config.body = JSON.stringify(body);
   }
 
@@ -29,5 +33,6 @@ export async function request(endpoint, options = {}) {
     return null;
   }
 
-  return response.json();
+  const text = await response.text();
+  return text ? JSON.parse(text) : null;
 }

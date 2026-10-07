@@ -32,13 +32,6 @@ export default function LoginAuthPage() {
     const token = data?.token || data?.Token || data?.jwt;
     const user = data?.user || data?.User;
 
-    if (token) {
-      localStorage.setItem("token", token);
-    }
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
-    }
-
     if (login) {
       login(token, user);
     }
@@ -49,6 +42,7 @@ export default function LoginAuthPage() {
       navigate("/profile");
     }
   };
+  
 
   const validateRegister = () => {
     if (formData.password.length < 8) {

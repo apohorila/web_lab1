@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { request } from "../api/client";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const { addToCart } = useCart();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [added, setAdded] = useState(false);
+  const [addError, setAddError] = useState("");
 
   useEffect(() => {
     async function fetchProduct() {
@@ -29,8 +33,13 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = async () => {
     if (!product || isAdding) return;
+    if (!user) {
+      navigate("/login");
+      return;
+    }
     try {
       setIsAdding(true);
+      setAddError("");
       await addToCart(product.id, 1);
       setAdded(true);
       setTimeout(() => setAdded(false), 2500);
@@ -105,7 +114,7 @@ export default function ProductDetailPage() {
                 ? "Додано в кошик ✓"
                 : "ДОДАТИ В КОШИК"}
           </button>
-
+          {addError && <p className="text-xs text-red-600 mb-4">{addError}</p>}
           {product.description && (
             <p className="text-xs leading-relaxed text-neutral-600 mb-8 whitespace-pre-line">
               {product.description}
