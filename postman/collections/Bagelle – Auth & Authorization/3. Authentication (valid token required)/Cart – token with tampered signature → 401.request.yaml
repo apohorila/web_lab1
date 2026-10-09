@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/cart"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{tamperedToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      var parts = pm.collectionVariables.get("customerToken").split(".");
+      var sig = parts[2];
+      parts[2] = sig.slice(0, -4) + (sig.slice(-4) === "AAAA" ? "BBBB" : "AAAA");
+      pm.collectionVariables.set("tamperedToken", parts.join("."));
+    language: text/javascript
+  - type: afterResponse
+    code: pm.test("Status is 401 Unauthorized", function () { pm.response.to.have.status(401); });
+    language: text/javascript
+order: 3000

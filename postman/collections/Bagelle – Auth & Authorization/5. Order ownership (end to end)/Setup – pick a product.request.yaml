@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/products"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      var list = pm.response.json();
+      pm.test("At least one product exists", function () { pm.expect(list).to.be.an("array").and.not.empty; });
+      if (list.length) { pm.collectionVariables.set("productId", list[0].id); }
+    language: text/javascript
+order: 2000

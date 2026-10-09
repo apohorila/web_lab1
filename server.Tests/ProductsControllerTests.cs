@@ -35,12 +35,14 @@ public class ProductsControllerTests
         var db = GetTestDb();
         var controller = new ProductsController(db);
 
-        // Перевіряємо отримання першого товару за ID 1
-        var result = await controller.GetProduct(1);
+        var existing = await db.Products.AsNoTracking().FirstOrDefaultAsync();
+        Assert.NotNull(existing);
+
+        var result = await controller.GetProduct(existing!.Id);
 
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
         var product = Assert.IsType<Product>(okResult.Value);
-        Assert.Equal(1, product.Id);
+        Assert.Equal(existing.Id, product.Id);
     }
 
     [Fact]
@@ -67,7 +69,7 @@ public class ProductsControllerTests
             Description = "Тестова модель сумки для автотесту",
             ImageUrl = "https://example.com/test-bag.jpg",
             CategoryId = 1,
-            ShowroomId = 1
+            ShowroomId = 1,
         };
 
         await controller.CreateProduct(newProduct);

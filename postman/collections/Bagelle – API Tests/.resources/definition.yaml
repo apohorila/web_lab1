@@ -1,0 +1,57 @@
+$kind: collection
+description: |-
+  Functional API tests for Bagelle: categories, showrooms, products, cart and orders, with positive and negative cases.
+
+  HOW TO RUN
+  1. Start the API (default http://localhost:5038, change the `baseUrl` variable if needed).
+  2. Set the collection variable `adminToken` (Current value): log in as admin on the site, then in the browser console run  localStorage.getItem("bagelle_token")  and paste the result. Never put it in the Initial value, because that gets synced to the repo.
+  3. Run the whole collection with the Collection Runner (folders run in order and share ids).
+
+  WHAT IT TOUCHES
+  - Admin steps create their own category, showroom and product and delete them in the last folder.
+  - It registers one throw-away customer (pm_api_*@example.com) per run.
+  - Two guest orders per run cannot be deleted through the API.
+  Auth/role/ownership checks live in the separate collection "Bagelle – Auth & Authorization".
+variables:
+  - key: baseUrl
+    value: http://localhost:5038
+    disabled: false
+  - key: password
+    value: Passw0rd!2026
+    disabled: false
+  - key: customerEmail
+    value: ""
+    disabled: false
+  - key: customerToken
+    value: ""
+    disabled: false
+  - key: customerId
+    value: ""
+    disabled: false
+  - key: categoryName
+    value: ""
+    disabled: false
+  - key: categoryId
+    value: ""
+    disabled: false
+  - key: showroomId
+    value: ""
+    disabled: false
+  - key: productId
+    value: ""
+    disabled: false
+  - key: cartItemId
+    value: ""
+    disabled: false
+  - key: orderProductId
+    value: ""
+    disabled: false
+  - key: orderProductPrice
+    value: ""
+    disabled: false
+  - key: orderId
+    value: ""
+    disabled: false
+  - key: adminToken
+    secret: true
+    disabled: false

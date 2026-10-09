@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/showrooms/999999"
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    token: "{{customerToken}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status is 403 Forbidden", function () { pm.response.to.have.status(403); });
+    language: text/javascript
+order: 10000

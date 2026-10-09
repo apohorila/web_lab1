@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/orders/my"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{customerBToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      pm.test("Does not contain A's order", function () { var id = Number(pm.collectionVariables.get("orderIdA")); pm.expect(pm.response.json().some(function (o) { return o.id === id; })).to.be.false; });
+    language: text/javascript
+order: 9000

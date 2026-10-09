@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{baseUrl}}/api/showrooms"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "PM Showroom",
+      "address": "вул. Тестова, 1",
+      "workingHours": "10:00-20:00",
+      "phone": "+380000000001",
+      "latitude": 50.45,
+      "longitude": 30.52
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 201 Created", function () { pm.response.to.have.status(201); });
+      var json = pm.response.json();
+      pm.test("Returns the new showroom", function () { pm.expect(json.id).to.be.a("number").and.above(0); pm.expect(json.address).to.eql("вул. Тестова, 1"); pm.expect(json.latitude).to.eql(50.45); });
+      pm.collectionVariables.set("showroomId", json.id);
+    language: text/javascript
+order: 2000

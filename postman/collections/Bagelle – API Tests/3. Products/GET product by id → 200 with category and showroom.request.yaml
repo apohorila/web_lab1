@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/products/{{productId}}"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      var j = pm.response.json();
+      pm.test("Product fields match", function () { pm.expect(j.id).to.eql(Number(pm.collectionVariables.get("productId"))); pm.expect(j.name).to.eql("PM Test Bag"); });
+      pm.test("Category and showroom are included", function () { pm.expect(j.category.id).to.eql(Number(pm.collectionVariables.get("categoryId"))); pm.expect(j.showroom.id).to.eql(Number(pm.collectionVariables.get("showroomId"))); });
+    language: text/javascript
+order: 3000

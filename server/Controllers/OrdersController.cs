@@ -131,6 +131,10 @@ namespace server.Controllers
         public async Task<IActionResult> GetMyOrders()
         {
             var userId = GetCurrentUserId();
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
 
             var orders = await _context
                 .Orders.Include(o => o.Items)
@@ -149,6 +153,11 @@ namespace server.Controllers
             var userId = GetCurrentUserId();
             var isAdmin = User.IsInRole("Admin");
 
+            if (userId == null && !isAdmin)
+            {
+                return Unauthorized();
+            }
+
             var order = await _context
                 .Orders.Include(o => o.Items)
                     .ThenInclude(i => i.Product)
@@ -164,7 +173,6 @@ namespace server.Controllers
 
         [Authorize]
         [HttpGet]
-        
         [Authorize]
         [HttpPost("{id:int}/cancel")]
         public async Task<IActionResult> CancelOrder(int id)
@@ -200,10 +208,17 @@ namespace server.Controllers
             return Ok(order);
         }
 
+        [Authorize]
+        [HttpGet]
         public async Task<IActionResult> GetOrders()
         {
             var userId = GetCurrentUserId();
             var isAdmin = User.IsInRole("Admin");
+
+            if (userId == null && !isAdmin)
+            {
+                return Unauthorized();
+            }
 
             IQueryable<Order> query = _context
                 .Orders.Include(o => o.Items)

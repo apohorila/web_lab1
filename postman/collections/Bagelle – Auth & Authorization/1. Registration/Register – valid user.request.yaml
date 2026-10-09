@@ -1,0 +1,31 @@
+$kind: http-request
+url: "{{baseUrl}}/api/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{customerEmail}}",
+      "password": "{{password}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: beforeRequest
+    code: |-
+      var uid = "pm_" + Date.now() + "_" + Math.floor(Math.random() * 1000000) + "@example.com";
+      pm.collectionVariables.set("customerEmail", uid);
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      var json = pm.response.json();
+      pm.test("Response contains a JWT with 3 parts", function () { pm.expect(json.token).to.be.a("string"); pm.expect(json.token.split(".")).to.have.lengthOf(3); });
+      pm.test("User has the Customer role and the right email", function () { pm.expect(json.user.role).to.eql("Customer"); pm.expect(json.user.email).to.eql(pm.collectionVariables.get("customerEmail")); });
+      pm.test("Password / hash is never returned", function () { pm.expect(pm.response.text().toLowerCase()).to.not.include("password"); });
+      pm.collectionVariables.set("customerToken", json.token);
+      pm.collectionVariables.set("customerId", json.user.id);
+    language: text/javascript
+order: 1000

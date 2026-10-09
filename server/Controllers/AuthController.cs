@@ -1,7 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
 using System.Security.Claims;
 using System.Text;
 using Google.Apis.Auth;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,6 +19,11 @@ namespace server.Controllers
         private readonly AppDbContext _context;
         private readonly IConfiguration _config;
 
+        private const string OAuthPasswordMarker = "OAUTH_GOOGLE";
+        private const int MinPasswordLength = 8;
+
+        private static readonly PasswordHasher<User> PasswordHasher = new();
+
         public AuthController(AppDbContext context, IConfiguration config)
         {
             _context = context;
@@ -31,78 +38,72 @@ namespace server.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (
-                string.IsNullOrWhiteSpace(request.Email)
-                || string.IsNullOrWhiteSpace(request.Password)
-            )
+            var email = (request.Email ?? string.Empty).Trim();
+            var password = request.Password ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
                 return BadRequest(new { message = "Email та пароль є обов'язковими" });
             }
 
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u =>
-                u.Email == request.Email
-            );
-            if (existingUser != null)
+            if (!IsValidEmail(email))
+            {
+                return BadRequest(new { message = "Невірний формат email" });
+            }
+
+            if (password.Length < MinPasswordLength || !password.Any(char.IsDigit))
+            {
+                return BadRequest(
+                    new { message = "Пароль має містити щонайменше 8 символів та цифру" }
+                );
+            }
+
+            var emailLower = email.ToLower();
+            var exists = await _context.Users.AnyAsync(u => u.Email.ToLower() == emailLower);
+            if (exists)
             {
                 return BadRequest(new { message = "Користувач із таким email уже зареєстрований" });
             }
 
-            var role =
-                request.Email == "admin@bagelle.ua" || request.Email == "bagelleadmin@gmail.com"
-                    ? "Admin"
-                    : "Customer";
-
             var user = new User
             {
-                Email = request.Email,
-                FullName = request.Email.Split('@')[0],
-                Role = role,
+                Email = email,
+                FullName = email.Split('@')[0],
+                Role = "Customer",
             };
+
+
+            user.PasswordHash = PasswordHasher.HashPassword(user, password);
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            var token = GenerateJwtToken(user);
-
-            return Ok(
-                new
-                {
-                    token = token,
-                    user = new
-                    {
-                        id = user.Id,
-                        email = user.Email,
-                        name = user.FullName,
-                        role = user.Role,
-                    },
-                }
-            );
+            return Ok(BuildAuthResponse(user));
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
-            if (user == null)
+            var email = (request.Email ?? string.Empty).Trim();
+            var password = request.Password ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrEmpty(password))
+            {
+                return BadRequest(new { message = "Email та пароль є обов'язковими" });
+            }
+
+            var emailLower = email.ToLower();
+            var user = await _context.Users.FirstOrDefaultAsync(u =>
+                u.Email.ToLower() == emailLower
+            );
+
+            
+            if (user == null || !VerifyPassword(user, password))
             {
                 return Unauthorized(new { message = "Невірний email або пароль" });
             }
 
-            var token = GenerateJwtToken(user);
-
-            return Ok(
-                new
-                {
-                    token = token,
-                    user = new
-                    {
-                        id = user.Id,
-                        email = user.Email,
-                        name = user.FullName,
-                        role = user.Role,
-                    },
-                }
-            );
+            return Ok(BuildAuthResponse(user));
         }
 
         [HttpPost("google")]
@@ -143,7 +144,7 @@ namespace server.Controllers
                 {
                     Email = email,
                     FullName = payload.Name ?? "Google User",
-                    PasswordHash = "OAUTH_GOOGLE",
+                    PasswordHash =  OAuthPasswordMarker,
                     Role = assignedRole,
                     Cart = new Cart(),
                 };
@@ -172,6 +173,43 @@ namespace server.Controllers
                 }
             );
         }
+
+        private static bool IsValidEmail(string email) =>
+            email.Length <= 100
+            && MailAddress.TryCreate(email, out var address)
+            && address.Address == email;
+
+        private static bool VerifyPassword(User user, string password)
+        {
+            // Google-акаунти та старі акаунти без пароля не можуть входити за паролем
+            if (string.IsNullOrEmpty(user.PasswordHash) || user.PasswordHash == OAuthPasswordMarker)
+            {
+                return false;
+            }
+
+            try
+            {
+                return PasswordHasher.VerifyHashedPassword(user, user.PasswordHash, password)
+                    != PasswordVerificationResult.Failed;
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+        }
+
+        private object BuildAuthResponse(User user) =>
+            new
+            {
+                token = GenerateJwtToken(user),
+                user = new
+                {
+                    id = user.Id,
+                    email = user.Email,
+                    name = user.FullName,
+                    role = user.Role,
+                },
+            };
 
         private string GenerateJwtToken(User user)
         {

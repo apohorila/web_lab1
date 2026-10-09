@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{baseUrl}}/api/categories/999999"
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      var token = pm.variables.get("adminToken");
+      if (!token) {
+          pm.test.skip("Categories: set the collection variable adminToken to run this check");
+      } else {
+          pm.test("Categories: admin passes authorization (404 – item does not exist, not 401/403)", function () { pm.response.to.have.status(404); });
+      }
+    language: text/javascript
+order: 8000

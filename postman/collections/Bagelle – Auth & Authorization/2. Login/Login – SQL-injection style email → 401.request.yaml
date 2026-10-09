@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "' OR '1'='1",
+      "password": "{{password}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: pm.test("Rejected (401) or invalid (400) – never 200/500", function () { pm.expect([400, 401]).to.include(pm.response.code); });
+    language: text/javascript
+order: 6000

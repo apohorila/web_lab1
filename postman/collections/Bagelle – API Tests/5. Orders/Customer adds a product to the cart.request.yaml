@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/cart/items"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "productId": {{orderProductId}},
+      "quantity": 1
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{customerToken}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+    language: text/javascript
+order: 9000

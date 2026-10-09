@@ -1,0 +1,15 @@
+$kind: http-request
+description: Orders use an existing product (not the one this collection creates and deletes), because order items keep a reference to their product.
+url: "{{baseUrl}}/api/products"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      var other = pm.response.json().find(function (p) { return p.id !== Number(pm.collectionVariables.get("productId")); });
+      pm.test("The catalog has at least one other product", function () { pm.expect(other, "add a product to the catalog first").to.exist; });
+      if (other) { pm.collectionVariables.set("orderProductId", other.id); pm.collectionVariables.set("orderProductPrice", other.price); }
+    language: text/javascript
+order: 1000

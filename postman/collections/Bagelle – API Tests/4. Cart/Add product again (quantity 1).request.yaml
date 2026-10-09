@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/api/cart/items"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "productId": {{productId}},
+      "quantity": 1
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{customerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      var cart = pm.response.json();
+      var item = cart.items.find(function (i) { return i.productId === Number(pm.collectionVariables.get("productId")); });
+      pm.test("Cart contains the product", function () { pm.expect(item, "item not found in cart").to.exist; });
+      pm.test("Quantity is " + 1, function () { pm.expect(item.quantity).to.eql(1); });
+      pm.collectionVariables.set("cartItemId", item.id);
+    language: text/javascript
+order: 12000

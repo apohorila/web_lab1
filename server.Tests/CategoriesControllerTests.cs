@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using server.Controllers;
 using server.Data;
 using server.Models;
+using Microsoft.AspNetCore.Mvc;
 using Xunit;
 
 namespace server.Tests;
@@ -34,17 +35,20 @@ public class CategoriesControllerTests
         var db = GetTestDb();
         var controller = new CategoriesController(db);
 
-        var newCategory = new Category { Name = "Рюкзаки" };
+        var result = await controller.CreateCategory(
+            new CategoryCreateDto { Name = "Рюкзаки", Description = "Тест" }
+        );
 
-        await controller.CreateCategory(newCategory);
-        Assert.True(newCategory.Id > 0);
+        var created = Assert.IsType<CreatedAtActionResult>(result.Result);
+        var category = Assert.IsType<Category>(created.Value);
+        Assert.True(category.Id > 0);
 
-        var categoryInDb = await db.Categories.FindAsync(newCategory.Id);
+        var categoryInDb = await db.Categories.FindAsync(category.Id);
         Assert.NotNull(categoryInDb);
         Assert.Equal("Рюкзаки", categoryInDb.Name);
 
-        await controller.DeleteCategory(newCategory.Id);
-        var deleted = await db.Categories.FindAsync(newCategory.Id);
+        await controller.DeleteCategory(category.Id);
+        var deleted = await db.Categories.FindAsync(category.Id);
         Assert.Null(deleted);
     }
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using server.Data;
 using server.Models;
+using Microsoft.AspNetCore.Authorization; 
 
 namespace server.Controllers;
 
@@ -32,6 +33,7 @@ public class ShowroomsController : ControllerBase
         return Ok(showroom);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<ActionResult<Showroom>> CreateShowroom(Showroom showroom)
     {
@@ -41,6 +43,7 @@ public class ShowroomsController : ControllerBase
         return CreatedAtAction(nameof(GetShowroom), new { id = showroom.Id }, showroom);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateShowroom(int id, Showroom showroom)
     {
@@ -62,6 +65,7 @@ public class ShowroomsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteShowroom(int id)
     {

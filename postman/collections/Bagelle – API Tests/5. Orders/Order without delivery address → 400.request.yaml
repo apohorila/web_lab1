@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{baseUrl}}/api/orders"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "customerName": "Postman Tester",
+      "customerPhone": "+380000000000",
+      "customerEmail": "{{customerEmail}}",
+      "deliveryCity": "Київ",
+      "deliveryAddress": "",
+      "items": [
+        {
+          "productId": {{orderProductId}},
+          "quantity": 1
+        }
+      ]
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: pm.test("Status is 400 Bad Request", function () { pm.response.to.have.status(400); });
+    language: text/javascript
+order: 7000

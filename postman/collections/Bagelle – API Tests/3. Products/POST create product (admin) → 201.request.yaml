@@ -1,0 +1,30 @@
+$kind: http-request
+url: "{{baseUrl}}/api/products"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "PM Test Bag",
+      "price": 3600,
+      "description": "Created by Postman",
+      "imageUrl": "https://example.com/pm-bag.jpg",
+      "categoryId": {{categoryId}},
+      "showroomId": {{showroomId}}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 201 Created", function () { pm.response.to.have.status(201); });
+      var json = pm.response.json();
+      pm.test("Returns the new product", function () { pm.expect(json.id).to.be.a("number").and.above(0); pm.expect(json.name).to.eql("PM Test Bag"); pm.expect(json.price).to.eql(3600); });
+      pm.test("Linked to the category and showroom created above", function () { pm.expect(json.categoryId).to.eql(Number(pm.collectionVariables.get("categoryId"))); pm.expect(json.showroomId).to.eql(Number(pm.collectionVariables.get("showroomId"))); });
+      pm.collectionVariables.set("productId", json.id);
+    language: text/javascript
+order: 2000

@@ -1,0 +1,22 @@
+$kind: http-request
+description: The role claim in the payload was changed to Admin without re-signing. The signature check must reject it.
+url: "{{baseUrl}}/api/products/999999"
+method: DELETE
+auth:
+  type: bearer
+  credentials:
+    token: "{{forgedToken}}"
+scripts:
+  - type: beforeRequest
+    code: |-
+      var parts = pm.collectionVariables.get("customerToken").split(".");
+      function fromB64Url(s) { s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) { s += "="; } return CryptoJS.enc.Base64.parse(s).toString(CryptoJS.enc.Utf8); }
+      function toB64Url(s) { return CryptoJS.enc.Utf8.parse(s).toString(CryptoJS.enc.Base64).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
+      var payload = JSON.parse(fromB64Url(parts[1]));
+      Object.keys(payload).forEach(function (k) { if (payload[k] === "Customer") { payload[k] = "Admin"; } });
+      pm.collectionVariables.set("forgedToken", parts[0] + "." + toB64Url(JSON.stringify(payload)) + "." + parts[2]);
+    language: text/javascript
+  - type: afterResponse
+    code: pm.test("Status is 401 Unauthorized", function () { pm.response.to.have.status(401); });
+    language: text/javascript
+order: 4000

@@ -1,0 +1,14 @@
+$kind: http-request
+url: "{{baseUrl}}/api/orders/{{orderIdA}}"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{customerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      pm.test("Order is linked to user A", function () { pm.expect(pm.response.json().userId).to.eql(Number(pm.collectionVariables.get("customerId"))); });
+    language: text/javascript
+order: 4000

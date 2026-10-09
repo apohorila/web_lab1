@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{baseUrl}}/api/orders/my"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{customerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      var o = pm.response.json().find(function (x) { return x.id === Number(pm.collectionVariables.get("orderId")); });
+      pm.test("Order is listed", function () { pm.expect(o, "order not in list").to.exist; });
+      pm.test("Belongs to the customer, status Pending", function () { pm.expect(o.userId).to.eql(Number(pm.collectionVariables.get("customerId"))); pm.expect(o.status).to.eql("Pending"); });
+      pm.test("Item keeps the unit price at order time", function () { pm.expect(o.items[0].unitPrice).to.be.closeTo(Number(pm.collectionVariables.get("orderProductPrice")), 0.001); });
+    language: text/javascript
+order: 12000

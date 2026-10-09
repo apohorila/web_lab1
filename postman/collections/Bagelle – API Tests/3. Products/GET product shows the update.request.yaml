@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/products/{{productId}}"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      pm.test("Name and price were updated", function () { var j = pm.response.json(); pm.expect(j.name).to.eql("PM Test Bag UPDATED"); pm.expect(j.price).to.eql(4100); });
+    language: text/javascript
+order: 7000

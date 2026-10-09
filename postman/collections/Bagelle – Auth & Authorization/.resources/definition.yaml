@@ -1,0 +1,48 @@
+$kind: collection
+description: |-
+  Automated checks for authentication (register/login/JWT) and authorization (401/403, roles, order ownership).
+
+  Run the folders in order (Collection Runner / newman).
+  Optional: set the collection variable `adminToken` (copy `bagelle_token` from localStorage after logging in as admin on the site) to enable the admin checks.
+
+  Every run registers a few throw-away users with emails like pm_<timestamp>_<n>@example.com.
+variables:
+  - key: baseUrl
+    value: http://localhost:5038
+    disabled: false
+  - key: password
+    value: Passw0rd!2026
+    disabled: false
+  - key: adminToken
+    value: ""
+    disabled: false
+  - key: customerEmail
+    value: ""
+    disabled: false
+  - key: customerEmailUpper
+    value: ""
+    disabled: false
+  - key: customerToken
+    value: ""
+    disabled: false
+  - key: customerId
+    value: ""
+    disabled: false
+  - key: customerBToken
+    value: ""
+    disabled: false
+  - key: tamperedToken
+    value: ""
+    disabled: false
+  - key: forgedToken
+    value: ""
+    disabled: false
+  - key: productId
+    value: ""
+    disabled: false
+  - key: orderIdA
+    value: ""
+    disabled: false
+  - key: bearer_token_18wu
+    secret: true
+    disabled: false

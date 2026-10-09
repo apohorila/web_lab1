@@ -1,0 +1,3 @@
+$kind: collection
+description: "Uses id 999999, so nothing is ever modified: protected → 401/403, authorized-but-missing → 404."
+order: 4000

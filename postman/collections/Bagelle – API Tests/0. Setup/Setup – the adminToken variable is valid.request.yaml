@@ -1,0 +1,21 @@
+$kind: http-request
+description: If this fails, every admin request below will fail with 401/403. Log in as admin on the site and copy localStorage 'bagelle_token' into the adminToken collection variable.
+url: "{{baseUrl}}/api/categories"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      var token = pm.variables.get("adminToken");
+      pm.test("adminToken is set (see the collection description)", function () { pm.expect(token, "adminToken is empty").to.be.a("string").and.not.empty; });
+      if (token) {
+          var p = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+          while (p.length % 4) { p += "="; }
+          var payload = JSON.parse(CryptoJS.enc.Base64.parse(p).toString(CryptoJS.enc.Utf8));
+          var values = Object.keys(payload).map(function (k) { return payload[k]; });
+          pm.test("Token carries the Admin role", function () { pm.expect(values).to.include("Admin"); });
+          pm.test("Token is not expired", function () { pm.expect(payload.exp * 1000).to.be.above(Date.now()); });
+      }
+    language: text/javascript
+order: 2000

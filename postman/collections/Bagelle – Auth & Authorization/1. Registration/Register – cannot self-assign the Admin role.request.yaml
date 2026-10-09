@@ -1,0 +1,28 @@
+$kind: http-request
+description: Mass-assignment / privilege-escalation check.
+url: "{{baseUrl}}/api/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{tmpEmail}}",
+      "password": "{{password}}",
+      "role": "Admin"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: beforeRequest
+    code: |-
+      var uid = "pm_" + Date.now() + "_" + Math.floor(Math.random() * 1000000) + "@example.com";
+      pm.variables.set("tmpEmail", uid);
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      pm.test("Extra role field is ignored – user is Customer", function () { pm.expect(pm.response.json().user.role).to.eql("Customer"); });
+    language: text/javascript
+order: 8000

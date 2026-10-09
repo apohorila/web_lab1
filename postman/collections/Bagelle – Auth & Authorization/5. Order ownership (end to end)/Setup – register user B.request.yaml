@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{baseUrl}}/api/auth/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{tmpEmail}}",
+      "password": "{{password}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: beforeRequest
+    code: |-
+      var uid = "pm_" + Date.now() + "_" + Math.floor(Math.random() * 1000000) + "@example.com";
+      pm.variables.set("tmpEmail", uid);
+    language: text/javascript
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      pm.collectionVariables.set("customerBToken", pm.response.json().token);
+    language: text/javascript
+order: 1000

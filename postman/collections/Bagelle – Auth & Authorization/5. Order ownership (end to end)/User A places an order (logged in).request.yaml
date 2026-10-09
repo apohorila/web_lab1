@@ -1,0 +1,34 @@
+$kind: http-request
+url: "{{baseUrl}}/api/orders"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "customerName": "Postman Tester",
+      "customerPhone": "+380000000000",
+      "customerEmail": "{{customerEmail}}",
+      "deliveryCity": "Київ",
+      "deliveryAddress": "Відділення №1",
+      "items": [
+        {
+          "productId": {{productId}},
+          "quantity": 1
+        }
+      ]
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{customerToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      var json = pm.response.json();
+      pm.test("orderId returned", function () { pm.expect(json.orderId).to.be.a("number"); });
+      pm.collectionVariables.set("orderIdA", json.orderId);
+    language: text/javascript
+order: 3000
