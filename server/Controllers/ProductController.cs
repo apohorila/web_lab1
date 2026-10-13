@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using server.Caching;
 using server.Data;
 using server.Models;
-using Microsoft.AspNetCore.Authorization; 
 
 namespace server.Controllers;
 
@@ -17,6 +18,7 @@ public class ProductsController : ControllerBase
         _context = context;
     }
 
+    [CacheResponse("products", 60)]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
     {
@@ -27,6 +29,7 @@ public class ProductsController : ControllerBase
             .ToListAsync();
     }
 
+    [CacheResponse("products", 60)]
     [HttpGet("{id}")]
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
@@ -45,6 +48,7 @@ public class ProductsController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Admin")]
+    [InvalidateCache("products", "stats")]
     public async Task<ActionResult<Product>> CreateProduct([FromBody] Product product)
     {
         if (!ModelState.IsValid)
@@ -59,6 +63,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpPut("{id}")]
+    [InvalidateCache("products", "stats")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product product)
     {
@@ -86,6 +91,7 @@ public class ProductsController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [InvalidateCache("products", "stats")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteProduct(int id)
     {

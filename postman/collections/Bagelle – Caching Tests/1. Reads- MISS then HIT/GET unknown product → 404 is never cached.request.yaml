@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/products/999999"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 404 Not Found", function () { pm.response.to.have.status(404); });
+      pm.test("Not served from cache", function () { pm.expect(pm.response.headers.get("X-Cache")).to.not.eql("HIT"); });
+    language: text/javascript
+order: 7000

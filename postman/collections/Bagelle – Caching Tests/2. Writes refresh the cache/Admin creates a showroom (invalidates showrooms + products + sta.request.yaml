@@ -1,0 +1,28 @@
+$kind: http-request
+name: Admin creates a showroom (invalidates showrooms + products + stats)
+url: "{{baseUrl}}/api/showrooms"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "PM Cache Showroom",
+      "address": "вул. Тестова, 1",
+      "workingHours": "10-20",
+      "phone": "+380000000001",
+      "latitude": 50.4,
+      "longitude": 30.5
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 201 Created", function () { pm.response.to.have.status(201); });
+      pm.collectionVariables.set("showroomId", pm.response.json().id);
+    language: text/javascript
+order: 8000

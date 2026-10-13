@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using server.Caching;
 using server.Data;
 using server.Models;
 
@@ -41,6 +42,7 @@ namespace server.Controllers
             public List<CreateOrderItemDto> Items { get; set; } = new();
         }
 
+        [InvalidateCache("stats")]
         [HttpPost]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderDto dto)
         {
@@ -174,6 +176,7 @@ namespace server.Controllers
         [Authorize]
         [HttpGet]
         [Authorize]
+        [InvalidateCache("stats")]
         [HttpPost("{id:int}/cancel")]
         public async Task<IActionResult> CancelOrder(int id)
         {

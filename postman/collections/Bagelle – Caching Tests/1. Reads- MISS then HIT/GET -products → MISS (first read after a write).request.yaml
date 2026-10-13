@@ -1,0 +1,18 @@
+$kind: http-request
+name: GET /products → MISS (first read after a write)
+url: "{{baseUrl}}/api/products"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      pm.test("Cache headers are present (Cache:Provider must not be None)", function () { pm.expect(pm.response.headers.get("X-Cache"), "X-Cache header missing").to.be.a("string"); pm.expect(["Memory", "Redis"]).to.include(pm.response.headers.get("X-Cache-Provider")); });
+      pm.test("X-Cache is MISS", function () { pm.expect(pm.response.headers.get("X-Cache")).to.eql("MISS"); });
+      console.log("MISS: " + pm.response.responseTime + " ms  <- " + pm.request.url.getPath());
+      pm.collectionVariables.set("productsBody", pm.response.text());
+      var list = pm.response.json(); if (list.length) { pm.collectionVariables.set("firstProductId", list[0].id); }
+      pm.test("JSON uses camelCase and includes category / showroom", function () { if (list.length) { pm.expect(list[0]).to.have.property("name"); pm.expect(list[0]).to.have.property("category"); } });
+    language: text/javascript
+order: 1000

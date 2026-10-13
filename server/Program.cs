@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using server.Data;
+using Microsoft.Extensions.Caching.Distributed;
+using server.Caching;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,27 @@ builder
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
+var cacheProvider = builder.Configuration["Cache:Provider"] ?? "Memory";
+if (cacheProvider.Equals("Redis", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration =
+            builder.Configuration["Cache:RedisConnection"]
+            ?? "localhost:6379,abortConnect=false,connectTimeout=1000,syncTimeout=1000,asyncTimeout=1000";
+        options.InstanceName = "bagelle:";
+    });
+    builder.Services.AddSingleton<ICacheService>(sp => new DistributedCacheService(
+        sp.GetRequiredService<IDistributedCache>(),
+        "Redis"
+    ));
+}
+else if (!cacheProvider.Equals("None", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddMemoryCache();
+    builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
+}
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
@@ -27,6 +50,11 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+            policy
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+                .WithExposedHeaders("X-Cache", "X-Cache-Provider");
         }
     );
 });

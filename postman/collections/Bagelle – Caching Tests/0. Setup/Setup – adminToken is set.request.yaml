@@ -1,0 +1,10 @@
+$kind: http-request
+url: "{{baseUrl}}/api/categories"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: pm.test("adminToken is set (see collection description)", function () { pm.expect(pm.variables.get("adminToken"), "adminToken is empty").to.be.a("string").and.not.empty; });
+    language: text/javascript
+order: 2000

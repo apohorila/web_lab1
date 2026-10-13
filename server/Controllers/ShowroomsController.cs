@@ -1,8 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using server.Caching;
 using server.Data;
 using server.Models;
-using Microsoft.AspNetCore.Authorization; 
 
 namespace server.Controllers;
 
@@ -17,12 +18,14 @@ public class ShowroomsController : ControllerBase
         _context = context;
     }
 
+    [CacheResponse("showrooms", 60)]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Showroom>>> GetShowrooms()
     {
         return await _context.Showrooms.AsNoTracking().ToListAsync();
     }
 
+    [CacheResponse("showrooms", 60)]
     [HttpGet("{id}")]
     public async Task<ActionResult<Showroom>> GetShowroom(int id)
     {
@@ -34,6 +37,7 @@ public class ShowroomsController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
+    [InvalidateCache("showrooms", "products", "stats")]
     [HttpPost]
     public async Task<ActionResult<Showroom>> CreateShowroom(Showroom showroom)
     {
@@ -44,6 +48,7 @@ public class ShowroomsController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
+    [InvalidateCache("showrooms", "products", "stats")]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateShowroom(int id, Showroom showroom)
     {
@@ -66,6 +71,7 @@ public class ShowroomsController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
+    [InvalidateCache("showrooms", "products", "stats")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteShowroom(int id)
     {

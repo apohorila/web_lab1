@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/api/categories/{{categoryId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "id": {{categoryId}},
+      "name": "{{catName}} RENAMED"
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: pm.test("Status is 200 or 204", function () { pm.expect([200, 204]).to.include(pm.response.code); });
+    language: text/javascript
+order: 3000

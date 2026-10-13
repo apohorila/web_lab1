@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using server.Caching;
 using server.Data;
 using server.Models;
 
@@ -23,12 +24,14 @@ public class CategoriesController : ControllerBase
         _context = context;
     }
 
+    [CacheResponse("categories", 60)]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
     {
         return await _context.Categories.AsNoTracking().ToListAsync();
     }
 
+    [CacheResponse("categories", 60)]
     [HttpGet("{id}")]
     public async Task<ActionResult<Category>> GetCategory(int id)
     {
@@ -39,6 +42,7 @@ public class CategoriesController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
+    [InvalidateCache("categories", "products", "stats")]
     [HttpPost]
     public async Task<ActionResult<Category>> CreateCategory([FromBody] CategoryCreateDto dto)
     {
@@ -60,6 +64,7 @@ public class CategoriesController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
+    [InvalidateCache("categories", "products", "stats")]
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateCategory(int id, [FromBody] Category category)
     {
@@ -83,6 +88,7 @@ public class CategoriesController : ControllerBase
     }
 
     [Authorize(Roles = "Admin")]
+    [InvalidateCache("categories", "products", "stats")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteCategory(int id)
     {

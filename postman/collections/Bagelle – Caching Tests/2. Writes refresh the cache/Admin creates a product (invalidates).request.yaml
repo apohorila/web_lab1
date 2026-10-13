@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/api/products"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "name": "PM Cache Bag",
+      "price": 3200,
+      "description": "cache test",
+      "imageUrl": "https://example.com/b.jpg",
+      "categoryId": {{categoryId}},
+      "showroomId": {{showroomId}}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 201 Created", function () { pm.response.to.have.status(201); });
+      pm.collectionVariables.set("productId", pm.response.json().id);
+    language: text/javascript
+order: 12000

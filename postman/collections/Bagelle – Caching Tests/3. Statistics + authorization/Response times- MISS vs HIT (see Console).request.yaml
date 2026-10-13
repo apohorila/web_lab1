@@ -1,0 +1,20 @@
+$kind: http-request
+name: "Response times: MISS vs HIT (see Console)"
+url: "{{baseUrl}}/api/stats/sales?days=7"
+method: GET
+queryParams:
+  days: "7"
+auth:
+  type: bearer
+  credentials:
+    token: "{{adminToken}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      pm.test("Cache headers are present (Cache:Provider must not be None)", function () { pm.expect(pm.response.headers.get("X-Cache"), "X-Cache header missing").to.be.a("string"); pm.expect(["Memory", "Redis"]).to.include(pm.response.headers.get("X-Cache-Provider")); });
+      pm.test("X-Cache is HIT", function () { pm.expect(pm.response.headers.get("X-Cache")).to.eql("HIT"); });
+      console.log("HIT: " + pm.response.responseTime + " ms  <- " + pm.request.url.getPath());
+      pm.test("Cached response is fast (< 500 ms)", function () { pm.expect(pm.response.responseTime).to.be.below(500); });
+    language: text/javascript
+order: 10000

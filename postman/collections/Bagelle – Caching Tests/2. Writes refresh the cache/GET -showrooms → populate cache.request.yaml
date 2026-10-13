@@ -1,0 +1,13 @@
+$kind: http-request
+name: GET /showrooms → populate cache
+url: "{{baseUrl}}/api/showrooms"
+method: GET
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test("Status is 200 OK", function () { pm.response.to.have.status(200); });
+      pm.test("Cache headers are present (Cache:Provider must not be None)", function () { pm.expect(pm.response.headers.get("X-Cache"), "X-Cache header missing").to.be.a("string"); pm.expect(["Memory", "Redis"]).to.include(pm.response.headers.get("X-Cache-Provider")); });
+    language: text/javascript
+order: 6000

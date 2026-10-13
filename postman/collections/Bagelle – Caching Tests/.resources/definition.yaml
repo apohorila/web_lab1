@@ -1,0 +1,53 @@
+$kind: collection
+description: |-
+  Evidence for API-level caching (Memory cache / Redis cache): shows X-Cache MISS -> HIT, that every write refreshes the data, and that the cache never bypasses authorization.
+
+  HOW TO RUN
+  1. Start the API. Provider is chosen by appsettings: Cache:Provider = Memory | Redis | None  (docker-compose uses Redis).
+  2. Set the collection variable `adminToken` (Current value only): log in as admin, then in the browser console: localStorage.getItem("bagelle_token") - paste WITHOUT the quotes.
+  3. Run the whole collection with the Collection Runner, in order, and open the Postman Console (bottom left) to see the MISS/HIT response times.
+
+  To compare providers: run once with Cache:Provider=Memory, restart with Redis, run again. X-Cache-Provider in each response says which one answered.
+  With Cache:Provider=None the cache-header checks fail on purpose.
+
+  It creates and deletes its own category, showroom and products; nothing else is touched.
+variables:
+  - key: baseUrl
+    value: http://localhost:5038
+    disabled: false
+  - key: password
+    value: Passw0rd!2026
+    disabled: false
+  - key: adminToken
+    secret: true
+    disabled: false
+  - key: customerEmail
+    value: ""
+    disabled: false
+  - key: customerToken
+    value: ""
+    disabled: false
+  - key: categoryId
+    value: ""
+    disabled: false
+  - key: catName
+    value: ""
+    disabled: false
+  - key: showroomId
+    value: ""
+    disabled: false
+  - key: productId
+    value: ""
+    disabled: false
+  - key: firstProductId
+    value: ""
+    disabled: false
+  - key: productsBody
+    value: ""
+    disabled: false
+  - key: statsBody
+    value: ""
+    disabled: false
+  - key: totalProducts
+    value: ""
+    disabled: false
