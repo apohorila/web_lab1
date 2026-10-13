@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { request } from "../api/client";
 import ShowroomMap from "../components/ShowroomMap";
+import { getCatalogStats } from "../api/statsApi";
 
 const getCityFromAddress = (address = "") => {
   if (!address) return "Інше";
@@ -15,6 +16,19 @@ export default function ShowroomsPage() {
   const [selectedCity, setSelectedCity] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeShowroom, setActiveShowroom] = useState(null);
+  const [statsByShowroom, setStatsByShowroom] = useState({});
+
+  useEffect(() => {
+    getCatalogStats()
+      .then(({ data }) => {
+        const byId = {};
+        data.showrooms.forEach((s) => {
+          byId[s.id] = s;
+        });
+        setStatsByShowroom(byId);
+      })
+      .catch((err) => console.error("Не вдалося завантажити статистику:", err));
+  }, []);
 
   useEffect(() => {
     async function fetchShowrooms() {
@@ -155,6 +169,7 @@ export default function ShowroomsPage() {
               showrooms={filteredShowrooms}
               selectedShowroom={activeShowroom}
               onSelectShowroom={(showroom) => setActiveShowroom(showroom)}
+              stats={statsByShowroom}
             />
           </div>
         </div>

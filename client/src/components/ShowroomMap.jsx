@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import ShowroomMiniChart from "./charts/ShowroomMiniChart";
+ 
 
 const customIcon = new L.Icon({
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -44,6 +46,7 @@ export default function ShowroomMap({
   showrooms,
   selectedShowroom,
   onSelectShowroom,
+  stats = {},
 }) {
   const defaultCenter = [49.0384, 31.4513];
 
@@ -74,7 +77,7 @@ export default function ShowroomMap({
               click: () => onSelectShowroom(showroom),
             }}
           >
-            <Popup className="font-[Halvar_Breitschrift]">
+            <Popup className="font-[Halvar_Breitschrift]" minWidth={240}>
               <div className="p-1">
                 <span className="text-[10px] tracking-widest uppercase text-neutral-400 block mb-0.5">
                   {getCityFromAddress(showroom.address)}
@@ -98,6 +101,7 @@ export default function ShowroomMap({
                 >
                   Прокласти маршрут ↗
                 </a>
+                <ShowroomMiniChart stat={stats[showroom.id]} />
               </div>
             </Popup>
           </Marker>

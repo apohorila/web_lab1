@@ -96,6 +96,14 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-[24px]">
+          {isAdmin && (
+            <Link
+              to="/stats"
+              className="hover:opacity-60 transition-opacity tracking-widest text-inherit no-underline"
+            >
+              Статистика
+            </Link>
+          )}
           <Link
             to="/showrooms"
             className="hover:opacity-60 transition-opacity tracking-widest text-inherit no-underline"

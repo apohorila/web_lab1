@@ -36,3 +36,32 @@ export async function request(endpoint, options = {}) {
   const text = await response.text();
   return text ? JSON.parse(text) : null;
 }
+
+export async function requestWithMeta(endpoint, options = {}) {
+  const started = performance.now();
+  const token = localStorage.getItem(TOKEN_KEY);
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    method: options.method || "GET",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    throw new Error(
+      errorData?.message || `HTTP помилка! Статус: ${response.status}`,
+    );
+  }
+
+  const data = await response.json();
+
+  return {
+    data,
+    cache: response.headers.get("X-Cache"),
+    provider: response.headers.get("X-Cache-Provider"),
+    ms: Math.round(performance.now() - started),
+  };
+}
+

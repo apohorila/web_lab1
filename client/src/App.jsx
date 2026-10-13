@@ -15,6 +15,7 @@ import ProductDetailPage from "./pages/ProductDetailPage";
 import CartPage from "./pages/CartPage";
 import { useAuth } from "./context/AuthContext";
 import OrderDetailPage from "./pages/OrderDetailPage";
+import StatsPage from "./pages/StatsPage";
 
 function ProtectedRoute() {
   const { user, loading } = useAuth();
@@ -41,6 +42,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
             {/* <Footer /> */}
             <Route path="/orders/:id" element={<OrderDetailPage />} />
+            <Route path="/stats" element={<StatsPage />} />
           </Routes>
         </main>
       </div>
