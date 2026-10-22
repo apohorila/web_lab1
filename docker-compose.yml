@@ -44,8 +44,8 @@ services:
       - Jwt__Key=${JWT_KEY}
       - Cache__Provider=Redis
       - Cache__RedisConnection=redis:6379,abortConnect=false,connectTimeout=1000,syncTimeout=1000,asyncTimeout=1000
-      - Telegram__BotToken=8825868167:AAFWVDRw27jUuzsw-KsEs741axejwd1M3gk
-      - Telegram__ChatId=904359139
+      - Telegram__BotToken=${TELEGRAM_BOT_TOKEN}
+      - Telegram__ChatId=${TELEGRAM_CHAT_ID}
     depends_on:
       - postgres
       - redis
