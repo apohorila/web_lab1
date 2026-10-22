@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using server.Data;
 using Microsoft.Extensions.Caching.Distributed;
 using server.Caching;
+using server.Integrations.Telegram;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,10 @@ else if (!cacheProvider.Equals("None", StringComparison.OrdinalIgnoreCase))
     builder.Services.AddMemoryCache();
     builder.Services.AddSingleton<ICacheService, MemoryCacheService>();
 }
+
+builder.Services.Configure<TelegramOptions>(builder.Configuration.GetSection("Telegram"));
+builder.Services.AddHttpClient<ITelegramClient, TelegramClient>().RemoveAllLoggers(); // URL містить токен бота
+builder.Services.AddScoped<IOrderNotifier, OrderNotifier>();
 
 builder.Services.AddCors(options =>
 {

@@ -12,15 +12,9 @@ using Xunit;
 
 namespace server.Tests;
 
-/// <summary>
-/// Тести кешування відповідей API: обидва провайдери (Memory і Redis-варіант на IDistributedCache),
-/// а також фільтри [CacheResponse] / [InvalidateCache]. БД та Redis для цих тестів не потрібні.
-/// </summary>
 public class CachingTests
 {
-    // ───────────────────────── Провайдери кешу ─────────────────────────
-
-    // Redis-реалізація працює через IDistributedCache; у тестах підставляємо його in-memory варіант
+   
     private static ICacheService[] Providers() =>
         new ICacheService[]
         {
@@ -115,7 +109,7 @@ public class CachingTests
         }
     }
 
-    // ───────────────────────── Фільтри ─────────────────────────
+
 
     private sealed class Calls
     {
@@ -205,9 +199,9 @@ public class CachingTests
             Assert.Equal("MISS", Header(first, "X-Cache"));
             Assert.Equal("HIT", Header(second, "X-Cache"));
             Assert.Equal(cache.ProviderName, Header(second, "X-Cache-Provider"));
-            Assert.Equal(1, calls.Count); // другий запит НЕ дійшов до дії (тобто до БД)
+            Assert.Equal(1, calls.Count); 
             Assert.Equal("[{\"id\":1,\"name\":\"Bag\"}]", Body(first));
-            Assert.Equal(Body(first), Body(second)); // HIT і MISS повертають однаковий JSON
+            Assert.Equal(Body(first), Body(second));
         }
     }
 
@@ -269,7 +263,7 @@ public class CachingTests
     [Fact]
     public async Task CacheResponse_WhenCacheIsDown_StillReturnsTheResponse()
     {
-        // Redis недоступний — API має продовжувати працювати (запит іде в БД)
+        
         var filter = new CacheResponseAttribute("products", 60);
         var calls = new Calls();
 

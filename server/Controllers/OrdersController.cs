@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using server.Caching;
 using server.Data;
 using server.Models;
+using server.Integrations.Telegram;
 
 namespace server.Controllers
 {
@@ -13,10 +14,12 @@ namespace server.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IOrderNotifier? _notifier;
 
-        public OrdersController(AppDbContext context)
+        public OrdersController(AppDbContext context, IOrderNotifier? notifier = null)
         {
             _context = context;
+            _notifier = notifier;
         }
 
         private int? GetCurrentUserId()
@@ -117,6 +120,30 @@ namespace server.Controllers
 
             await _context.SaveChangesAsync();
 
+            if (_notifier != null)
+            {
+                await _notifier.OrderCreatedAsync(
+                    new OrderNotification(
+                        order.Id,
+                        order.CustomerName,
+                        order.CustomerPhone,
+                        order.CustomerEmail,
+                        order.DeliveryCity,
+                        order.DeliveryAddress,
+                        order.TotalAmount,
+                        order
+                            .Items.Select(i => new OrderLine(
+                                products.First(p => p.Id == i.ProductId).Name,
+                                i.Quantity,
+                                i.UnitPrice
+                            ))
+                            .ToList(),
+                        !userId.HasValue
+                    )
+                );
+            }
+
+
             return Ok(
                 new
                 {
@@ -207,6 +234,28 @@ namespace server.Controllers
 
             order.Status = "Cancelled";
             await _context.SaveChangesAsync();
+            if (_notifier != null)
+           {
+               await _notifier.OrderCancelledAsync(
+                   new OrderNotification(
+                       order.Id,
+                       order.CustomerName,
+                       order.CustomerPhone,
+                       order.CustomerEmail,
+                       order.DeliveryCity,
+                       order.DeliveryAddress,
+                       order.TotalAmount,
+                       order
+                           .Items.Select(i => new OrderLine(
+                               i.Product?.Name ?? $"Товар #{i.ProductId}",
+                               i.Quantity,
+                               i.UnitPrice
+                           ))
+                           .ToList(),
+                       order.UserId == null
+                   )
+               );
+           }
 
             return Ok(order);
         }

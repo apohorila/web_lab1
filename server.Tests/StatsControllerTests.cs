@@ -49,7 +49,7 @@ public class StatsControllerTests
     [Theory]
     [InlineData(7, 7)]
     [InlineData(30, 30)]
-    [InlineData(0, 1)] // некоректне значення обмежується діапазоном 1..365
+    [InlineData(0, 1)] 
     [InlineData(100000, 365)]
     public async Task GetSalesStats_ReturnsOnePointPerDay(int requestedDays, int expectedPoints)
     {

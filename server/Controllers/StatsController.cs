@@ -18,7 +18,7 @@ public class StatsController : ControllerBase
         _context = context;
     }
 
-    // Публічна статистика каталогу (для міні-діаграм на мапі шоурумів)
+
     [HttpGet("catalog")]
     [CacheResponse("stats", 120)]
     public async Task<ActionResult<CatalogStatsDto>> GetCatalogStats()
@@ -41,8 +41,7 @@ public class StatsController : ControllerBase
         return StatsCalculator.Catalog(products, categories, showrooms);
     }
 
-    // Статистика продажів — лише для адміністратора.
-    // [Authorize] спрацьовує раніше за фільтр кешу, тому кеш не віддасть дані без прав.
+
     [Authorize(Roles = "Admin")]
     [HttpGet("sales")]
     [CacheResponse("stats", 60)]
