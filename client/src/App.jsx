@@ -16,6 +16,7 @@ import CartPage from "./pages/CartPage";
 import { useAuth } from "./context/AuthContext";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import StatsPage from "./pages/StatsPage";
+import PremiumPage from "./pages/PremiumPage";
 
 function ProtectedRoute() {
   const { user, loading } = useAuth();
@@ -36,6 +37,7 @@ function App() {
             <Route path="/showrooms" element={<ShowroomsPage />} />
             <Route path="/products/:id" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/premium" element={<PremiumPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/profile" element={<Profile />} />
             </Route>

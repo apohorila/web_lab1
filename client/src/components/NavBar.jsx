@@ -6,10 +6,12 @@ import userIcon from "../assets/icons/profile.svg";
 import cartIcon from "../assets/icons/cart.svg";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import { useFeatures } from "../context/FeatureContext";
 
 export default function Navbar() {
   const { user, isAdmin, logout } = useAuth();
   const { totalCount } = useCart();
+  const { isAvailable, isEnabled } = useFeatures();
   const [isCatalogOpen, setIsCatalogOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -96,6 +98,14 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-[24px]">
+           {isAvailable("PremiumLounge") && (
+           <Link
+             to="/premium"
+             className="nav-desktop-only hover:opacity-60 transition-opacity tracking-widest text-inherit no-underline"
+           >
+             Premium{isEnabled("PremiumLounge") ? " ✦" : ""}
+           </Link>
+         )}
           {isAdmin && (
             <Link
               to="/stats"

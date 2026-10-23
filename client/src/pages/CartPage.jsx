@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { createOrder } from "../api/orders";
+import { useFeatures } from "../context/FeatureContext";
 
 export default function CartPage() {
   const navigate = useNavigate();
   const { cartItems, updateQuantity, removeFromCart, clearCart, totalPrice } = useCart();
+  const { refresh } = useFeatures();
 
  const { user } = useAuth();
 
@@ -53,6 +55,7 @@ export default function CartPage() {
       await createOrder(payload);
 
       clearCart();
+      refresh();
 
       navigate("/profile");
     } catch (err) {

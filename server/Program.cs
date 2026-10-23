@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using server.Data;
+using server.Features;
 using Microsoft.Extensions.Caching.Distributed;
 using server.Caching;
 using server.Integrations.Telegram;
@@ -63,6 +64,12 @@ builder.Services.AddCors(options =>
         }
     );
 });
+
+builder.Services.Configure<PlanOptions>(builder.Configuration.GetSection("Plans"));
+builder.Services.Configure<FeatureFlagsOptions>(builder.Configuration.GetSection("FeatureFlags"));
+builder.Services.AddScoped<ISpendProvider, OrderSpendProvider>();
+builder.Services.AddScoped<IPlanService, PlanService>();
+builder.Services.AddScoped<IFeatureFlagService, FeatureFlagService>();
 
 builder
     .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
