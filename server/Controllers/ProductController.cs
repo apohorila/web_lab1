@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using server.Caching;
 using server.Data;
 using server.Models;
+using server.Paging;
 
 namespace server.Controllers;
 
@@ -20,13 +21,44 @@ public class ProductsController : ControllerBase
 
     [CacheResponse("products", 60)]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+    public async Task<ActionResult<object>> GetProducts(
+       [FromQuery] int? categoryId = null,
+       [FromQuery] int? skip = null,
+       [FromQuery] int? limit = null
+   )
     {
-        return await _context
-            .Products.Include(p => p.Category)
-            .Include(p => p.Showroom)
-            .AsNoTracking()
-            .ToListAsync();
+        var query = _context.Products.Include(p => p.Category).Include(p => p.Showroom).AsNoTracking();
+
+        if (categoryId.HasValue)
+        {
+            query = query.Where(p => p.CategoryId == categoryId.Value);
+        }
+
+        query = query.OrderBy(p => p.Id);
+
+        
+        if (skip == null && limit == null)
+        {
+            return new ActionResult<object>(await query.ToListAsync());
+        }
+
+        if (!PagingHelper.TryNormalize(skip, limit, out var pageSkip, out var pageLimit, out var error))
+        {
+            return BadRequest(new { message = error });
+        }
+
+        var total = await query.CountAsync();
+        var items = await query.Skip(pageSkip).Take(pageLimit).ToListAsync();
+
+        return Ok(
+            new PagedResult<Product>(
+                items,
+                total,
+                pageSkip,
+                pageLimit,
+                PagingHelper.BuildNextLink(Request, pageSkip, pageLimit, total)
+            )
+        );
     }
 
     [CacheResponse("products", 60)]

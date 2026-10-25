@@ -1,30 +1,75 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { getProducts } from "../api/productsApi";
+import { getProductsPage } from "../api/productsApi";
 import bannerImg from "../assets/icons/banner.jpg";
+
+const PAGE_SIZE = 12;
+
+const nextSkipOf = (page) =>
+  page.nextLink
+    ? Number(new URL(page.nextLink).searchParams.get("skip"))
+    : null;
 
 export default function Catalog() {
   const [products, setProducts] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [nextSkip, setNextSkip] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchParams] = useSearchParams();
   const categoryId = searchParams.get("categoryId");
+  const activeCategory = useRef(categoryId);
 
   useEffect(() => {
-    async function loadProducts() {
+    let cancelled = false;
+    activeCategory.current = categoryId;
+    async function loadFirstPage() {
       try {
         setIsLoading(true);
-        const data = await getProducts(categoryId);
-        setProducts(Array.isArray(data) ? data : []);
+        const page = await getProductsPage({
+          categoryId,
+          skip: 0,
+          limit: PAGE_SIZE,
+        });
+        if (cancelled) return;
+        setProducts(page.items);
+        setTotal(page.total);
+        setNextSkip(nextSkipOf(page));
       } catch (error) {
         console.error("Помилка завантаження товарів:", error);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     }
 
-    loadProducts();
+    loadFirstPage();
+    return () => {
+      cancelled = true;
+    };
   }, [categoryId]);
+
+  const loadMore = async () => {
+    if (nextSkip === null || isLoadingMore) return;
+    const requestedCategory = categoryId;
+
+    try {
+      setIsLoadingMore(true);
+      const page = await getProductsPage({
+        categoryId,
+        skip: nextSkip,
+        limit: PAGE_SIZE,
+      });
+      if (activeCategory.current !== requestedCategory) return; // користувач уже змінив категорію
+      setProducts((prev) => [...prev, ...page.items]);
+      setTotal(page.total);
+      setNextSkip(nextSkipOf(page));
+    } catch (error) {
+      console.error("Помилка завантаження наступної сторінки:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -64,6 +109,29 @@ export default function Catalog() {
             </div>
           ))}
         </div>
+        {products.length === 0 && (
+          <p className="text-center text-xs tracking-widest uppercase text-neutral-400 py-10">
+            Товарів поки немає
+          </p>
+        )}
+
+        {products.length > 0 && (
+          <div className="mt-14 flex flex-col items-center gap-4 font-[Halvar_Breitschrift]">
+            <p className="text-[11px] tracking-widest uppercase text-neutral-400">
+              Показано {products.length} з {total}
+            </p>
+            {nextSkip !== null && (
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={isLoadingMore}
+                className="px-10 py-3 text-xs tracking-[0.2em] uppercase border border-black bg-white hover:bg-black hover:text-white transition-colors disabled:opacity-50 cursor-pointer"
+              >
+                {isLoadingMore ? "Завантаження..." : "Показати ще"}
+              </button>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
