@@ -1,0 +1,22 @@
+{
+  "name": "bagelle-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP-сервер для API магазину Bagelle (C22): читання каталогу та запис товарів",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "bagelle-mcp": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test test/server.test.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  }
+}
