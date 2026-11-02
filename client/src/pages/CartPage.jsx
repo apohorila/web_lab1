@@ -4,13 +4,15 @@ import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { createOrder } from "../api/orders";
 import { useFeatures } from "../context/FeatureContext";
+import ReactGA from "react-ga4";
 
 export default function CartPage() {
   const navigate = useNavigate();
-  const { cartItems, updateQuantity, removeFromCart, clearCart, totalPrice } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, clearCart, totalPrice } =
+    useCart();
   const { refresh } = useFeatures();
 
- const { user } = useAuth();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     customerName: user?.fullName || user?.name || "",
@@ -31,7 +33,11 @@ export default function CartPage() {
     e.preventDefault();
     if (cartItems.length === 0) return;
 
-    if (!formData.customerName || !formData.phone || !formData.deliveryAddress) {
+    if (
+      !formData.customerName ||
+      !formData.phone ||
+      !formData.deliveryAddress
+    ) {
       setError("Будь ласка, заповніть усі обов'язкові поля доставки");
       return;
     }
@@ -52,6 +58,13 @@ export default function CartPage() {
         })),
       };
 
+      console.log("Відправляємо аналітику...");
+      ReactGA.event({
+        category: "Ecommerce",
+        action: "click_checkout",
+        label: "User clicked checkout button",
+        value: Math.round(totalPrice || 0),
+      });
       await createOrder(payload);
 
       clearCart();
@@ -59,7 +72,9 @@ export default function CartPage() {
 
       navigate("/profile");
     } catch (err) {
-      setError(err?.message || "Не вдалося створити замовлення. Спробуйте пізніше.");
+      setError(
+        err?.message || "Не вдалося створити замовлення. Спробуйте пізніше.",
+      );
     } finally {
       setLoading(false);
     }
@@ -98,7 +113,11 @@ export default function CartPage() {
               className="flex gap-[16px] p-[16px] border border-neutral-200 items-center justify-between bg-white"
             >
               <img
-                src={item.imageUrl || item.image || "https://placehold.co/120x120?text=Bagllet"}
+                src={
+                  item.imageUrl ||
+                  item.image ||
+                  "https://placehold.co/120x120?text=Bagllet"
+                }
                 alt={item.name}
                 className="w-[80px] h-[80px] object-contain bg-neutral-50 border border-neutral-100 p-[4px]"
               />
@@ -120,7 +139,9 @@ export default function CartPage() {
                 >
                   -
                 </button>
-                <span className="px-[12px] py-[4px] text-xs font-medium">{item.quantity}</span>
+                <span className="px-[12px] py-[4px] text-xs font-medium">
+                  {item.quantity}
+                </span>
                 <button
                   type="button"
                   onClick={() => updateQuantity(item.id || item.productId, 1)}
@@ -215,7 +236,9 @@ export default function CartPage() {
             </div>
 
             <div className="pt-[16px] border-t border-neutral-200 flex justify-between items-center text-xs font-medium">
-              <span className="uppercase tracking-wider text-neutral-700">Сума замовлення:</span>
+              <span className="uppercase tracking-wider text-neutral-700">
+                Сума замовлення:
+              </span>
               <span className="text-base text-neutral-900 font-normal">
                 ₴{totalPrice.toLocaleString()}
               </span>

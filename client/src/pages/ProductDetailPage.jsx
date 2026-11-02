@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { request } from "../api/client";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import ReactGA from "react-ga4";
+
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -32,6 +34,13 @@ export default function ProductDetailPage() {
   }, [id]);
 
   const handleAddToCart = async () => {
+    ReactGA.event({
+      category: "Ecommerce",
+      action: "add_to_cart",
+      label: product?.name || "Product",
+      value: product?.price || 0,
+    });
+
     if (!product || isAdding) return;
     if (!user) {
       navigate("/login");
