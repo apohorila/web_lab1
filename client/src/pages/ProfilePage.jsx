@@ -14,6 +14,7 @@ import {
 } from "../api/productsApi";
 import { useAuth } from "../context/AuthContext";
 import { getUserOrders, getStatusLabel } from "../api/orders";
+import ImagePicker from "../components/ImagePicker";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -317,6 +318,11 @@ export default function Profile() {
                   className="w-full border border-neutral-300 bg-[white] p-[10px] text-xs outline-none focus:border-black font-[Halvar_Breitschrift]"
                 />
               </div>
+              <ImagePicker
+                onPicked={(dataUrl) =>
+                  setProductForm((form) => ({ ...form, imageUrl: dataUrl }))
+                }
+              />
 
               <div className="md:col-span-2">
                 <label className="block text-[15px] tracking-widest uppercase text-neutral-500 mb-[4px] font-[Halvar_Breitschrift]">
