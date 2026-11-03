@@ -8,6 +8,7 @@ using server.Features;
 using Microsoft.Extensions.Caching.Distributed;
 using server.Caching;
 using server.Integrations.Telegram;
+using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,12 +56,11 @@ builder.Services.AddCors(options =>
         "AllowAll",
         policy =>
         {
-            policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-            policy
-                .AllowAnyOrigin()
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .WithExposedHeaders("X-Cache", "X-Cache-Provider");
+           policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .WithExposedHeaders("X-Cache", "X-Cache-Provider");
         }
     );
 });
@@ -89,6 +89,17 @@ builder
         };
     });
 
+    builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var config = builder.Configuration.GetSection("AWS");
+    var s3Config = new AmazonS3Config
+    {
+        ServiceURL = config["ServiceURL"],
+        ForcePathStyle = true 
+    };
+    return new AmazonS3Client(config["AccessKey"], config["SecretKey"], s3Config);
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -106,6 +117,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 // app.UseHttpsRedirection();
+app.UseStaticFiles(); 
 app.UseRouting();
 
 app.UseCors("AllowAll");

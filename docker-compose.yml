@@ -25,10 +25,21 @@ services:
       - postgres
 
   redis:
-      image: redis:7-alpine
-      container_name: brand_redis
-      ports:
-        - "6379:6379"
+    image: redis:7-alpine
+    container_name: brand_redis
+    ports:
+      - "6379:6379"
+
+  localstack:
+    image: localstack/localstack:latest
+    container_name: local-blob-storage
+    ports:
+      - "4566:4566"            # S3 API / Edge port
+    environment:
+      - SERVICES=s3
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - localstack_data:/var/lib/localstack
   api:
     build:
       context: .
@@ -52,3 +63,4 @@ services:
 
 volumes:
   pgdata:
+  localstack_data:
